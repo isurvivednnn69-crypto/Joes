@@ -1,5 +1,3 @@
-# Builds the Vita test app into a .vpk on GitHub's servers, so you don't need to install VitaSDK.
-# UNTESTED: written without access to VitaSDK. If a step fails, paste the log and I'll fix it.
 name: Build VPK
 on: [push, workflow_dispatch]
 jobs:
@@ -12,22 +10,18 @@ jobs:
         run: |
           export VITASDK=${VITASDK:-/usr/local/vitasdk}
           export PATH=$VITASDK/bin:$PATH
-          git clone --depth 1 https://github.com/vdpm/vdpm /tmp/vdpm
-          cd /tmp/vdpm && ./bootstrap-vitasdk.sh >/dev/null 2>&1 || true
-          ./install-all.sh >/dev/null 2>&1 || true
-          # vitaGL is not always in the vdpm index; build it from source as a fallback
-          if [ ! -f $VITASDK/arm-vita-eabi/lib/libvitaGL.a ]; then
-            git clone --depth 1 https://github.com/Rinnegatamante/vitaGL /tmp/vitaGL
-            make -C /tmp/vitaGL -j"$(nproc)" install
-          fi
+          git clone --depth 1 https://github.com/vitasdk/vdpm /tmp/vdpm
+          cd /tmp/vdpm && python3 vdpm vitashark mathneon || true
+          git clone --depth 1 https://github.com/Rinnegatamante/vitaGL /tmp/vitaGL
+          make -C /tmp/vitaGL -j"$(nproc)" install
       - name: Fetch stb_image.h
-        run: curl -L -o vita/src/stb_image.h https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
+        run: curl -L -o dbtap_vita_port_wip/vita/src/stb_image.h https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
       - name: Build
         run: |
           export VITASDK=${VITASDK:-/usr/local/vitasdk}
           export PATH=$VITASDK/bin:$PATH
-          cd vita && cmake -B build && cmake --build build -j"$(nproc)"
+          cd dbtap_vita_port_wip/vita && cmake -B build && cmake --build build -j"$(nproc)"
       - uses: actions/upload-artifact@v4
         with:
           name: dbtap_vita_vpk
-          path: vita/build/*.vpk
+          path: dbtap_vita_port_wip/vita/build/*.vpk
