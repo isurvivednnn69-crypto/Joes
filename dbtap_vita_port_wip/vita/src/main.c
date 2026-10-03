@@ -1,7 +1,6 @@
-/* Step-1 test app: proves the Vita can read the game's .pac files, decode the
- * PNG atlases and draw them. Tap the touchscreen to cycle through textures,
- * press START to quit. UNTESTED on hardware (written without a VitaSDK).
- * Needs stb_image.h (public domain, https://github.com/nothings/stb) in src/. */
+/* Step-1 test app: reads the game's .pac files, decodes the PNG atlases and
+ * draws them. Tap the touchscreen to cycle textures, press START to quit.
+ * Needs stb_image.h in src/ (the GitHub workflow downloads it). */
 #include <vitasdk.h>
 #include <vitaGL.h>
 #include <stdio.h>
@@ -52,15 +51,13 @@ int main(void) {
         was_down = down;
         if (!tex && npng) { int w, h; tex = upload_png(pac_find(&pac, "png", idx), &w, &h); }
 
-        vglStartRendering();
         glClearColor(0.1f, 0.1f, 0.15f, 1); glClear(GL_COLOR_BUFFER_BIT);
         glMatrixMode(GL_PROJECTION); glLoadIdentity(); glOrtho(0, 960, 544, 0, -1, 1);
         glMatrixMode(GL_MODELVIEW); glLoadIdentity();
         if (tex) draw_quad(tex, 224, 16, 512, 512);
-        vglStopRendering();
+        vglSwapBuffers(GL_FALSE);
     }
     pac_free(&pac);
-    vglEnd();
     sceKernelExitProcess(0);
     return 0;
 }
